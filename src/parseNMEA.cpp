@@ -2,16 +2,28 @@
 #include "parseNMEA.h"
 
 #include <regex>
+#include <iostream>
+
+using std::regex;
+using std::string;
 
 namespace NMEA
 {
 
-  bool isWellFormedSentence(std::string)
+  bool isWellFormedSentence(std::string inputSentence)
   {
       // Intend on using regex to check the string
+      regex regexSentenceCheck("($GP)");
 
-      // Stub definition, needs implementing
-      return false;
+      string prefix = inputSentence.substr(0, 3);
+
+      std::cout << prefix << std::endl;
+
+      if (regex_match(prefix, regexSentenceCheck)) { std::cout << "Worked" << std::endl; }
+      else { std::cout << "Failed" << std::endl; }
+
+      if (regex_match(inputSentence, regexSentenceCheck)) { return true; }
+      else { return false; }
   }
 
   bool hasValidChecksum(std::string)
