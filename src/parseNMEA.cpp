@@ -13,11 +13,9 @@ namespace NMEA
   bool isWellFormedSentence(std::string inputSentence)
   {
       // Intend on using regex to check the string
-      regex regexFullSentence("\\$GP([A-Z]{3}),(.*?)\*[0-9A-Fa-f]{2}");
-      regex regexNoFields("\\$GP([A-Z]{3}).[0-9A-Fa-f]{2}");
+      regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
 
       if (regex_match(inputSentence, regexFullSentence)) { return true; }
-      else if (regex_match(inputSentence, regexNoFields)) { return true; }
       else { return false; }
   }
 
