@@ -23,20 +23,13 @@ namespace NMEA
   {
       if(!isWellFormedSentence(inputSentence)) return false;
 
-      std::size_t ampersand = inputSentence.find('$');
-      std::size_t asterisk = inputSentence.find('*');
-
       std::string subStr = inputSentence.substr(inputSentence.length() - 2);
-      std::cout << subStr << std::endl;
       unsigned int hexVals = std::stoul(subStr, nullptr, 16);
-      std::cout << std::hex << hexVals << std::endl;
 
-      std::string valuesToCalc = inputSentence.substr(++ampersand, asterisk - 2);
       int checksum = 0;
       for(int i = 1; i < inputSentence.length() - 3; i++)
       {
           checksum ^= inputSentence[i];
-          std::cout << std::hex << checksum << std::endl;
       }
 
       if (checksum == hexVals)
@@ -47,15 +40,6 @@ namespace NMEA
       {
           return false;
       }
-
-      /*string checksum = "";
-      string hexVals = inputSentence.substr(inputSentence.length() - 2);
-
-      for(int i = 1; i < inputSentence.length() - 3; i++)
-      {
-            int calcChecksum = 0;
-            checksum = calcChecksum ^= i;
-      }*/
   }
 
   SentenceData extractSentenceData(std::string)
