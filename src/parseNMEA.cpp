@@ -80,6 +80,13 @@ namespace NMEA
 
   Route routeFromLog(std::istream &)
   {
+      // Takes input stream as a parameter
+      // Need to iterate through stream
+      // Assert each previous function to the given sentence
+      // Use each sentence to get the GPS::Position
+      // Save the position to the Route (vector<GPS::Position>
+
+
       // Stub definition, needs implementing
       return {};
   }
