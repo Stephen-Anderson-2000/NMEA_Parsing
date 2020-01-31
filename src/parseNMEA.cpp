@@ -42,10 +42,20 @@ namespace NMEA
       }
   }
 
-  SentenceData extractSentenceData(std::string)
+  SentenceData extractSentenceData(std::string inputSentence)
   {
-      // Stub definition, needs implementing
-      return {"",{}};
+      size_t comma;
+      size_t start;
+
+      comma = inputSentence.find(",");
+
+      std::string format = inputSentence.substr(3, 3);
+      std::cout << format << std::endl;
+      std::cout << inputSentence.length();
+
+      std::string positionalData = inputSentence.substr(comma + 1, inputSentence.length() - 10);
+
+      return {format, {positionalData}};
   }
 
   GPS::Position positionFromSentenceData(SentenceData)
