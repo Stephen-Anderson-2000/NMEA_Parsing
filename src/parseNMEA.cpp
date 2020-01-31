@@ -8,7 +8,7 @@
 #include <cassert>
 
 using std::string;
-
+using std::vector;
 
 // REMEMBER TO REMOVE <iostream> ONCE COMPLETED
 
@@ -43,7 +43,7 @@ namespace NMEA
   {
       string format = inputSentence.substr(3, 3);
 
-      std::vector<string> positionalData;
+      vector<string> positionalData;
 
       size_t comma = inputSentence.find(',');
       if (comma != string::npos)
@@ -60,9 +60,21 @@ namespace NMEA
       return {format, {positionalData}};
   }
 
-  GPS::Position positionFromSentenceData(SentenceData)
+  GPS::Position positionFromSentenceData(SentenceData sentence)
   {
-      // Stub definition, needs implementing
+      string format = sentence.first;
+      std::cout << format << std::endl;
+      vector<string> positionalData = sentence.second;
+
+
+      if (format != "GLL" && format != "GGA" && format != "RMC")
+      {
+          throw std::invalid_argument("");
+      }
+
+
+
+
       return GPS::Earth::NorthPole;
   }
 
