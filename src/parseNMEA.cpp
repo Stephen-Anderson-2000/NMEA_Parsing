@@ -2,10 +2,13 @@
 #include "parseNMEA.h"
 
 #include <regex>
+#include <vector>
 #include <iostream>
+#include <sstream>
 
 using std::regex;
 using std::string;
+using std::vector;
 
 namespace NMEA
 {
@@ -44,16 +47,23 @@ namespace NMEA
 
   SentenceData extractSentenceData(std::string inputSentence)
   {
-      size_t comma;
-      size_t start;
-
-      comma = inputSentence.find(",");
-
       std::string format = inputSentence.substr(3, 3);
-      std::cout << format << std::endl;
-      std::cout << inputSentence.length();
+      //std::cout << format << std::endl;
+      //std::cout << inputSentence.length() << std::endl;
 
-      std::string positionalData = inputSentence.substr(comma + 1, inputSentence.length() - 10);
+      vector<string> positionalData;
+      if (inputSentence.length() < 10) {
+
+      }
+      else {
+            size_t comma = inputSentence.find(',');
+            std::stringstream separateStream(inputSentence.substr(comma + 1, inputSentence.length()-10));
+            while(separateStream.good()) {
+                string section;
+                getline(separateStream, section, ',');
+                positionalData.push_back(section);
+        }
+      }
 
       return {format, {positionalData}};
   }
