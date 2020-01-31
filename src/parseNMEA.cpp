@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <cassert>
 
 using std::regex;
 using std::string;
@@ -47,6 +48,8 @@ namespace NMEA
 
   SentenceData extractSentenceData(std::string inputSentence)
   {
+      assert(isWellFormedSentence(inputSentence));
+
       std::string format = inputSentence.substr(3, 3);
       //std::cout << format << std::endl;
       //std::cout << inputSentence.length() << std::endl;
