@@ -25,7 +25,7 @@ namespace NMEA
 
   bool hasValidChecksum(std::string inputSentence)
   {
-      if(!isWellFormedSentence(inputSentence)) return false;
+      if(!isWellFormedSentence(inputSentence)) { return false; }
 
       std::string subStr = inputSentence.substr(inputSentence.length() - 2);
       unsigned int hexVals = std::stoul(subStr, nullptr, 16);
@@ -36,14 +36,8 @@ namespace NMEA
           checksum ^= inputSentence[i];
       }
 
-      if (checksum == hexVals)
-      {
-          return true;
-      }
-      else
-      {
-          return false;
-      }
+      if (checksum == hexVals) { return true; }
+      else { return false; }
   }
 
   SentenceData extractSentenceData(std::string inputSentence)
@@ -55,17 +49,17 @@ namespace NMEA
       //std::cout << inputSentence.length() << std::endl;
 
       vector<string> positionalData;
-      if (inputSentence.length() < 10) {
 
-      }
-      else {
-            size_t comma = inputSentence.find(',');
-            std::stringstream separateStream(inputSentence.substr(comma + 1, inputSentence.length()-10));
-            while(separateStream.good()) {
-                string section;
-                getline(separateStream, section, ',');
-                positionalData.push_back(section);
-        }
+      size_t comma = inputSentence.find(',');
+      if (comma != std::string::npos)
+      {
+          std::stringstream separateStream(inputSentence.substr(comma + 1, inputSentence.length() - 10));
+          while(separateStream.good())
+          {
+            string section;
+            getline(separateStream, section, ',');
+            positionalData.push_back(section);
+          }
       }
 
       return {format, {positionalData}};
