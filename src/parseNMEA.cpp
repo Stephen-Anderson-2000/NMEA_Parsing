@@ -7,31 +7,30 @@
 #include <sstream>
 #include <cassert>
 
-using std::regex;
 using std::string;
-using std::vector;
+
+
+// REMEMBER TO REMOVE <iostream> ONCE COMPLETED
+
 
 namespace NMEA
 {
 
-  bool isWellFormedSentence(std::string inputSentence)
+  bool isWellFormedSentence(string inputSentence)
   {
-      // Intend on using regex to check the string
-      regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
+      std::regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
 
       if (regex_match(inputSentence, regexFullSentence)) { return true; }
       else { return false; }
   }
 
-  bool hasValidChecksum(std::string inputSentence)
+  bool hasValidChecksum(string inputSentence)
   {
-      if(!isWellFormedSentence(inputSentence)) { return false; }
+      string subStr = inputSentence.substr(inputSentence.length() - 2);
+      unsigned long hexVals = std::stoul(subStr, nullptr, 16);
 
-      std::string subStr = inputSentence.substr(inputSentence.length() - 2);
-      unsigned int hexVals = std::stoul(subStr, nullptr, 16);
-
-      int checksum = 0;
-      for(int i = 1; i < inputSentence.length() - 3; i++)
+      unsigned int checksum = 0;
+      for(unsigned long i = 1; i < inputSentence.length() - 3; i++)
       {
           checksum ^= inputSentence[i];
       }
@@ -40,18 +39,14 @@ namespace NMEA
       else { return false; }
   }
 
-  SentenceData extractSentenceData(std::string inputSentence)
+  SentenceData extractSentenceData(string inputSentence)
   {
-      assert(isWellFormedSentence(inputSentence));
+      string format = inputSentence.substr(3, 3);
 
-      std::string format = inputSentence.substr(3, 3);
-      //std::cout << format << std::endl;
-      //std::cout << inputSentence.length() << std::endl;
-
-      vector<string> positionalData;
+      std::vector<string> positionalData;
 
       size_t comma = inputSentence.find(',');
-      if (comma != std::string::npos)
+      if (comma != string::npos)
       {
           std::stringstream separateStream(inputSentence.substr(comma + 1, inputSentence.length() - 10));
           while(separateStream.good())
