@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cmath>
 
 using std::regex;
 using std::string;
@@ -75,23 +76,13 @@ namespace NMEA
 
       if (format == "GLL")
       {
-          // Major logic errors when fetching the lat/long. Otherwise works.
-          // Need to be able to differentiate between minutes and degrees to chop up string
-
-
           string latString = sentence.second[0];
-          latitude = std::stod(latString.substr(0, 2));
-          double latMins = ((std::stod(latString.substr(2, latString.back()))) / 60);
-          latitude += latMins;
-          char latDir = sentence.second[1][0];
-          if (latDir == 'S') { latitude = 0 - latitude; }
+          latitude = GPS::ddmTodd(latString);
+          if (sentence.second[1][0] == 'S') { latitude = 0 - latitude; }
 
           string longString = sentence.second[2];
-          longitude = std::stod(longString.substr(0, 2));
-          double longMins = ((std::stod(longString.substr(2, longString.back()))) / 60);
-          longitude += longMins;
-          char longDir = sentence.second[3][0];
-          if (longDir == 'E') { longitude = 0 - longitude; }
+          longitude = GPS::ddmTodd(longString);
+          if (sentence.second[3][0] == 'W') { longitude = 0 - longitude; }
       }
       else if (format == "GGA")
       {
