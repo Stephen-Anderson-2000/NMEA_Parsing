@@ -6,7 +6,9 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
+#include <string>
 
+using std::regex;
 using std::string;
 using std::vector;
 
@@ -18,7 +20,7 @@ namespace NMEA
 
   bool isWellFormedSentence(string inputSentence)
   {
-      std::regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
+      regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
 
       if (regex_match(inputSentence, regexFullSentence)) { return true; }
       else { return false; }
@@ -63,19 +65,39 @@ namespace NMEA
   GPS::Position positionFromSentenceData(SentenceData sentence)
   {
       string format = sentence.first;
-      std::cout << format << std::endl;
       vector<string> positionalData = sentence.second;
 
+      double latitude = 0;
+      double longitude = 0;
 
-      if (format != "GLL" && format != "GGA" && format != "RMC")
+      // GGA has elevation
+
+      if (format == "GLL")
       {
-          throw std::invalid_argument("");
+          latitude = std::stod(sentence.second[0]);
+          //char latDir = sentence.second[1][0];
+          longitude = std::stod(sentence.second[2]);
+          //char longDir = sentence.second[3][0];
+
+          std::cout << latitude << std::endl;
+          std::cout << longitude << std::endl;
+
+      }
+      else if (format == "GGA")
+      {
+          //
+      }
+      else if (format == "RMC")
+      {
+          //
+      }
+      else
+      {
+          throw std::invalid_argument("Invalid Format");
       }
 
 
-
-
-      return GPS::Earth::NorthPole;
+      return GPS::Position(latitude, longitude);
   }
 
   Route routeFromLog(std::istream &)
@@ -85,6 +107,8 @@ namespace NMEA
       // Assert each previous function to the given sentence
       // Use each sentence to get the GPS::Position
       // Save the position to the Route (vector<GPS::Position>
+
+      // Catch each invalid argument thrown by positionFromSentenceData()
 
 
       // Stub definition, needs implementing
