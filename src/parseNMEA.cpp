@@ -5,12 +5,12 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include <cassert>
 #include <string>
 
 using std::regex;
 using std::string;
 using std::vector;
+using std::stod;
 
 // REMEMBER TO REMOVE <iostream> ONCE COMPLETED
 
@@ -22,8 +22,7 @@ namespace NMEA
   {
       regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
 
-      if (regex_match(inputSentence, regexFullSentence)) { return true; }
-      else { return false; }
+      return regex_match(inputSentence, regexFullSentence);
   }
 
   bool hasValidChecksum(string inputSentence)
@@ -70,18 +69,29 @@ namespace NMEA
       double latitude = 0;
       double longitude = 0;
 
-      // GGA has elevation
+      // GLL does not has elevation
+
+      if (sentence.second.empty()) { throw std::invalid_argument("Missing Data"); }
 
       if (format == "GLL")
       {
-          latitude = std::stod(sentence.second[0]);
-          //char latDir = sentence.second[1][0];
-          longitude = std::stod(sentence.second[2]);
-          //char longDir = sentence.second[3][0];
+          // Major logic errors when fetching the lat/long. Otherwise works.
+          // Need to be able to differentiate between minutes and degrees to chop up string
 
-          std::cout << latitude << std::endl;
-          std::cout << longitude << std::endl;
 
+          string latString = sentence.second[0];
+          latitude = std::stod(latString.substr(0, 2));
+          double latMins = ((std::stod(latString.substr(2, latString.back()))) / 60);
+          latitude += latMins;
+          char latDir = sentence.second[1][0];
+          if (latDir == 'S') { latitude = 0 - latitude; }
+
+          string longString = sentence.second[2];
+          longitude = std::stod(longString.substr(0, 2));
+          double longMins = ((std::stod(longString.substr(2, longString.back()))) / 60);
+          longitude += longMins;
+          char longDir = sentence.second[3][0];
+          if (longDir == 'E') { longitude = 0 - longitude; }
       }
       else if (format == "GGA")
       {
