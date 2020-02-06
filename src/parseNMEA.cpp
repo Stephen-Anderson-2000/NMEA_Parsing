@@ -70,32 +70,49 @@ namespace NMEA
       double latitude = 0;
       double longitude = 0;
 
+      string latString = "";
+      string longString = "";
+
+      char latDir;
+      char longDir;
+
       // GLL does not has elevation
 
       if (sentence.second.empty()) { throw std::invalid_argument("Missing Data"); }
 
       if (format == "GLL")
       {
-          string latString = sentence.second[0];
-          latitude = GPS::ddmTodd(latString);
-          if (sentence.second[1][0] == 'S') { latitude = 0 - latitude; }
+          latString = sentence.second[0];
+          latDir = sentence.second[1][0];
 
-          string longString = sentence.second[2];
-          longitude = GPS::ddmTodd(longString);
-          if (sentence.second[3][0] == 'W') { longitude = 0 - longitude; }
+          longString = sentence.second[2];
+          longDir = sentence.second[4][0];
       }
       else if (format == "GGA")
       {
-          //
+          latString = sentence.second[1];
+          latDir = sentence.second[2][0];
+
+          longString = sentence.second[3];
+          longDir = sentence.second[4][0];
       }
       else if (format == "RMC")
       {
-          //
+          latString = sentence.second[3];
+          latDir = sentence.second[4][0];
+
+          longString = sentence.second[5];
+          longDir = sentence.second[6][0];
       }
       else
       {
           throw std::invalid_argument("Invalid Format");
       }
+
+      latitude = GPS::ddmTodd(latString);
+      if (sentence.second[1][0] == 'S') { latitude = 0 - latitude; }
+      longitude = GPS::ddmTodd(longString);
+      if (sentence.second[3][0] == 'W') { longitude = 0 - longitude; }
 
 
       return GPS::Position(latitude, longitude);
