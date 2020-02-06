@@ -110,9 +110,9 @@ namespace NMEA
       }
 
       latitude = GPS::ddmTodd(latString);
-      if (sentence.second[1][0] == 'S') { latitude = 0 - latitude; }
+      if (latDir == 'S') { latitude = 0 - latitude; }
       longitude = GPS::ddmTodd(longString);
-      if (sentence.second[3][0] == 'W') { longitude = 0 - longitude; }
+      if (latDir == 'W') { longitude = 0 - longitude; }
 
 
       return GPS::Position(latitude, longitude);
