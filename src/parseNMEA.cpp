@@ -65,10 +65,9 @@ namespace NMEA
       if (comma != string::npos)
       {
           std::stringstream separateStream(inputSentence.substr(comma + 1, endPosition));
-
+          string section;
           while(separateStream.good())
           {
-            string section;
             getline(separateStream, section, ',');
             positionalData.push_back(section);
           }
@@ -127,7 +126,7 @@ namespace NMEA
       return GPS::Position(latString, latDir, longString, longDir, eleString);
   }
 
-  Route routeFromLog(std::istream &)
+  Route routeFromLog(std::istream &logStream)
   {
       // Takes input stream as a parameter
       // Need to iterate through stream
@@ -136,7 +135,10 @@ namespace NMEA
       // Save the position to the Route (vector<GPS::Position>
 
       // Catch each invalid argument thrown by positionFromSentenceData()
-
+      string tempSentence;
+      while (logStream.good()) {
+            getline(logStream, tempSentence, '\n');
+      }
 
       // Stub definition, needs implementing
       return {};
