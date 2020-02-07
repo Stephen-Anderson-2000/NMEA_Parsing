@@ -21,6 +21,8 @@ namespace NMEA
 
   bool isWellFormedSentence(string inputSentence)
   {
+      //A regex statement to cover all possible combinations of NMEA sentences,
+      //which is then checked against the input sentence.
       regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
 
       return regex_match(inputSentence, regexFullSentence);
@@ -28,29 +30,42 @@ namespace NMEA
 
   bool hasValidChecksum(string inputSentence)
   {
-      string subStr = inputSentence.substr(inputSentence.length() - 2);
-      unsigned long hexVals = std::stoul(subStr, nullptr, 16);
+      int hexBase = 16;
+      int endPoint = inputSentence.length() - 2;
 
+      //Takes the actual checksum given by inputSentence
+      string subStr = inputSentence.substr(endPoint);
+      unsigned long hexVals = std::stoul(subStr, nullptr, hexBase);
+
+      //Calculates a new checksum using XOR
       unsigned int checksum = 0;
-      for(unsigned long i = 1; i < inputSentence.length() - 3; i++)
+      for(unsigned long i = 1; i < endPoint - 1; i++)
       {
           checksum ^= inputSentence[i];
       }
 
+      //Compares the two
       if (checksum == hexVals) { return true; }
       else { return false; }
   }
 
   SentenceData extractSentenceData(string inputSentence)
   {
+      //Finds the format
       string format = inputSentence.substr(3, 3);
 
+      //Creates a vector for the positional and finds the
+      //Finds the comma, and the exact end position of the positionaldata.
       vector<string> positionalData;
-
       size_t comma = inputSentence.find(',');
+      int endPosition = inputSentence.length() - 10;
+
+      //Uses stringstream to separate the data and adds
+      //the data to the vector separately.
       if (comma != string::npos)
       {
-          std::stringstream separateStream(inputSentence.substr(comma + 1, inputSentence.length() - 10));
+          std::stringstream separateStream(inputSentence.substr(comma + 1, endPosition));
+
           while(separateStream.good())
           {
             string section;
