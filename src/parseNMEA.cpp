@@ -31,7 +31,7 @@ namespace NMEA
   bool hasValidChecksum(string inputSentence)
   {
       int hexBase = 16;
-      int endPoint = inputSentence.length() - 2;
+      unsigned int endPoint = inputSentence.length() - 2;
 
       //Takes the actual checksum given by inputSentence
       string subStr = inputSentence.substr(endPoint);
@@ -127,7 +127,7 @@ namespace NMEA
       latitude = GPS::ddmTodd(latString);
       if (latDir == 'S') { latitude = 0 - latitude; }
       longitude = GPS::ddmTodd(longString);
-      if (latDir == 'W') { longitude = 0 - longitude; }
+      if (longDir == 'W') { longitude = 0 - longitude; }
 
 
       return GPS::Position(latitude, longitude);
