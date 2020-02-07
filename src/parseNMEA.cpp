@@ -6,12 +6,12 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cassert>
 #include <cmath>
 
 using std::regex;
 using std::string;
 using std::vector;
-using std::stod;
 
 // REMEMBER TO REMOVE <iostream> ONCE COMPLETED
 
@@ -23,7 +23,8 @@ namespace NMEA
   {
       //A regex statement to cover all possible combinations of NMEA sentences,
       //which is then checked against the input sentence.
-      regex regexFullSentence("\\$GP[A-Z]{3}[A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
+
+      regex regexFullSentence("\\$GP[A-Z]{3}[\\-A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
 
       return regex_match(inputSentence, regexFullSentence);
   }
@@ -51,14 +52,15 @@ namespace NMEA
 
   SentenceData extractSentenceData(string inputSentence)
   {
-      //Finds the format
+      const int posOffset = 10;
+      //Finds the format with starting position 3, spanning 3 characters.
       string format = inputSentence.substr(3, 3);
 
       //Creates a vector for the positional and finds the
       //Finds the comma, and the exact end position of the positionaldata.
       vector<string> positionalData;
       size_t comma = inputSentence.find(',');
-      int endPosition = inputSentence.length() - 10;
+      int endPosition = inputSentence.length() - posOffset;
 
       //Uses stringstream to separate the data and adds
       //the data to the vector separately.
@@ -91,16 +93,19 @@ namespace NMEA
       if (positionalData.empty()) { throw std::invalid_argument("Missing Data"); }
 
       //Gathers the relevant positional data and assigns it to relevant variables.
-      if (format == "GLL")
+      if (format == "GLL" && positionalData.size() == 5)
       {
+          assert (positionalData.size() == 5);
           latString = positionalData[0];
           latDir = positionalData[1][0];
 
+
           longString = positionalData[2];
           longDir = positionalData[3][0];
-          }
-      else if (format == "GGA")
+      }
+      else if (format == "GGA" && positionalData.size() == 14)
       {
+          assert (positionalData.size() == 14);
           latString = positionalData[1];
           latDir = positionalData[2][0];
 
@@ -109,8 +114,9 @@ namespace NMEA
 
           eleString = positionalData[8];
        }
-       else if (format == "RMC")
+       else if (format == "RMC" && positionalData.size() == 11)
        {
+          assert (positionalData.size() == 11);
           latString = positionalData[2];
           latDir = positionalData[3][0];
 
@@ -119,8 +125,10 @@ namespace NMEA
        }
        else
        {
-          throw std::invalid_argument("Invalid Format");
+          throw std::invalid_argument("Unsupported Format");
        }
+      if (latDir != 'N' && latDir != 'S') { throw std::invalid_argument("Invalid Northing"); }
+      if (longDir != 'E' && longDir != 'W') { throw std::invalid_argument("Invalid Easting"); }
 
       //Returns a Position based on given variables.
       return GPS::Position(latString, latDir, longString, longDir, eleString);
@@ -134,14 +142,40 @@ namespace NMEA
       // Use each sentence to get the GPS::Position
       // Save the position to the Route (vector<GPS::Position>
 
-      // Catch each invalid argument thrown by positionFromSentenceData()
       string tempSentence;
-      while (logStream.good()) {
-            getline(logStream, tempSentence, '\n');
-      }
+      Route finalRoute;
+      GPS::Position currentPosition(0, 0, 0);
+      int counter1 = 0;
+      int counter2 = 0;
 
+
+
+      while (logStream.good()) {
+          getline(logStream, tempSentence, '\n');
+
+          if (isWellFormedSentence(tempSentence))
+          {
+              counter1++;
+              if (hasValidChecksum(tempSentence))
+              {
+                  counter2++;
+                  {
+                          try
+                          {
+                           currentPosition = positionFromSentenceData(extractSentenceData(tempSentence));
+                           finalRoute.push_back(currentPosition);
+                          }
+                          catch (...)
+                          {
+
+                          }
+                      }
+              }
+          }
+
+        }
       // Stub definition, needs implementing
-      return {};
+      return finalRoute;
   }
 
 }
