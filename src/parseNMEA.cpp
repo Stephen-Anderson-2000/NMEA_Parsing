@@ -82,55 +82,49 @@ namespace NMEA
       string format = sentence.first;
       vector<string> positionalData = sentence.second;
 
-      double latitude = 0;
-      double longitude = 0;
-
       string latString = "";
       string longString = "";
+      string eleString = "0";
 
       char latDir;
       char longDir;
 
-      // GLL does not has elevation
+      if (positionalData.empty()) { throw std::invalid_argument("Missing Data"); }
 
-      if (sentence.second.empty()) { throw std::invalid_argument("Missing Data"); }
-
+      //Gathers the relevant positional data and assigns it to relevant variables.
       if (format == "GLL")
       {
-          latString = sentence.second[0];
-          latDir = sentence.second[1][0];
+          latString = positionalData[0];
+          latDir = positionalData[1][0];
 
-          longString = sentence.second[2];
-          longDir = sentence.second[4][0];
-      }
+          longString = positionalData[2];
+          longDir = positionalData[3][0];
+          }
       else if (format == "GGA")
       {
-          latString = sentence.second[1];
-          latDir = sentence.second[2][0];
+          latString = positionalData[1];
+          latDir = positionalData[2][0];
 
-          longString = sentence.second[3];
-          longDir = sentence.second[4][0];
-      }
-      else if (format == "RMC")
-      {
-          latString = sentence.second[3];
-          latDir = sentence.second[4][0];
+          longString = positionalData[3];
+          longDir = positionalData[4][0];
 
-          longString = sentence.second[5];
-          longDir = sentence.second[6][0];
-      }
-      else
-      {
+          eleString = positionalData[8];
+       }
+       else if (format == "RMC")
+       {
+          latString = positionalData[2];
+          latDir = positionalData[3][0];
+
+          longString = positionalData[4];
+          longDir = positionalData[5][0];
+       }
+       else
+       {
           throw std::invalid_argument("Invalid Format");
-      }
+       }
 
-      latitude = GPS::ddmTodd(latString);
-      if (latDir == 'S') { latitude = 0 - latitude; }
-      longitude = GPS::ddmTodd(longString);
-      if (longDir == 'W') { longitude = 0 - longitude; }
-
-
-      return GPS::Position(latitude, longitude);
+      //Returns a Position based on given variables.
+      return GPS::Position(latString, latDir, longString, longDir, eleString);
   }
 
   Route routeFromLog(std::istream &)
