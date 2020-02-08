@@ -5,7 +5,6 @@
 #include <vector>
 #include <sstream>
 #include <string>
-#include <cmath>
 
 using std::regex;
 using std::string;
