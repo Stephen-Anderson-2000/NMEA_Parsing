@@ -3,29 +3,22 @@
 
 #include <regex>
 #include <vector>
-#include <iostream>
 #include <sstream>
 #include <string>
-#include <cassert>
 #include <cmath>
 
 using std::regex;
 using std::string;
 using std::vector;
-
-// REMEMBER TO REMOVE <iostream> ONCE COMPLETED
-
+using std::invalid_argument;
 
 namespace NMEA
 {
 
   bool isWellFormedSentence(string inputSentence)
   {
-      //A regex statement to cover all possible combinations of NMEA sentences,
-      //which is then checked against the input sentence.
-
-      regex regexFullSentence("\\$GP[A-Z]{3}[\\-A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
-
+      // Uses regex to check for a valid NMEA sentence
+      regex regexFullSentence("\\$GP[A-Z]{3}[\-A-Za-z0-9,.]*\\*[0-9A-Fa-f]{2}");
       return regex_match(inputSentence, regexFullSentence);
   }
 
@@ -34,36 +27,34 @@ namespace NMEA
       int hexBase = 16;
       unsigned int endPoint = inputSentence.length() - 2;
 
-      //Takes the actual checksum given by inputSentence
+      // Takes the actual checksum given by inputSentence
       string subStr = inputSentence.substr(endPoint);
       unsigned long hexVals = std::stoul(subStr, nullptr, hexBase);
 
-      //Calculates a new checksum using XOR
+      // Calculates a new checksum using a bitwise XOR
       unsigned int checksum = 0;
-      for(unsigned long i = 1; i < endPoint - 1; i++)
+      for(unsigned int i = 1; i < endPoint - 1; i++)
       {
           checksum ^= inputSentence[i];
       }
 
-      //Compares the two
-      if (checksum == hexVals) { return true; }
-      else { return false; }
+      // Compares the two and returns the value
+      return (checksum == hexVals);
   }
 
   SentenceData extractSentenceData(string inputSentence)
   {
-      const int posOffset = 10;
-      //Finds the format with starting position 3, spanning 3 characters.
+      const int positionOffset = 10;
+      // Finds the format of the sentence with starting position 3, spanning 3 characters
       string format = inputSentence.substr(3, 3);
 
-      //Creates a vector for the positional and finds the
-      //Finds the comma, and the exact end position of the positionaldata.
+      // Creates a vector for the position data
+      // Finds the comma, and the exact end position of the positionaldata
       vector<string> positionalData;
       size_t comma = inputSentence.find(',');
-      int endPosition = inputSentence.length() - posOffset;
+      int endPosition = inputSentence.length() - positionOffset;
 
-      //Uses stringstream to separate the data and adds
-      //the data to the vector separately.
+      // Uses stringstream to separate and add the data
       if (comma != string::npos)
       {
           std::stringstream separateStream(inputSentence.substr(comma + 1, endPosition));
@@ -80,101 +71,76 @@ namespace NMEA
 
   GPS::Position positionFromSentenceData(SentenceData sentence)
   {
+      // Fetches the main data that is going to be processed
       string format = sentence.first;
       vector<string> positionalData = sentence.second;
 
-      string latString = "";
-      string longString = "";
+      unsigned int latLocation;
+      unsigned int latDirLocation;
+      unsigned int longLocation;
+      unsigned int longDirLocation;
+
       string eleString = "0";
 
-      char latDir;
-      char longDir;
-
-      if (positionalData.empty()) { throw std::invalid_argument("Missing Data"); }
-
-      //Gathers the relevant positional data and assigns it to relevant variables.
+      // Sets the index locations for each format type
       if (format == "GLL" && positionalData.size() == 5)
-      {
-          assert (positionalData.size() == 5);
-          latString = positionalData[0];
-          latDir = positionalData[1][0];
-
-
-          longString = positionalData[2];
-          longDir = positionalData[3][0];
+      {   
+          latLocation = 0;
+          latDirLocation = 1;
+          longLocation = 2;
+          longDirLocation = 3;
       }
       else if (format == "GGA" && positionalData.size() == 14)
       {
-          assert (positionalData.size() == 14);
-          latString = positionalData[1];
-          latDir = positionalData[2][0];
-
-          longString = positionalData[3];
-          longDir = positionalData[4][0];
-
+          latLocation = 1;
+          latDirLocation = 2;
+          longLocation = 3;
+          longDirLocation = 4;
           eleString = positionalData[8];
        }
        else if (format == "RMC" && positionalData.size() == 11)
        {
-          assert (positionalData.size() == 11);
-          latString = positionalData[2];
-          latDir = positionalData[3][0];
-
-          longString = positionalData[4];
-          longDir = positionalData[5][0];
+          latLocation = 2;
+          latDirLocation = 3;
+          longLocation = 4;
+          longDirLocation = 5;
        }
-       else
-       {
-          throw std::invalid_argument("Unsupported Format");
-       }
-      if (latDir != 'N' && latDir != 'S') { throw std::invalid_argument("Invalid Northing"); }
-      if (longDir != 'E' && longDir != 'W') { throw std::invalid_argument("Invalid Easting"); }
+       else { throw invalid_argument("Unsupported Format"); }
 
-      //Returns a Position based on given variables.
-      return GPS::Position(latString, latDir, longString, longDir, eleString);
+      // Gets the data that will be used
+      char latDir = positionalData[latDirLocation][0];
+      char longDir = positionalData[longDirLocation][0];
+
+      if (latDir != 'N' && latDir != 'S') { throw invalid_argument("Invalid Northing"); }
+      if (longDir != 'E' && longDir != 'W') { throw invalid_argument("Invalid Easting"); }
+
+      // Returns a Position object based on given variables.
+      return GPS::Position(positionalData[latLocation], latDir, positionalData[longLocation], longDir, eleString);
   }
 
   Route routeFromLog(std::istream &logStream)
   {
-      // Takes input stream as a parameter
-      // Need to iterate through stream
-      // Assert each previous function to the given sentence
-      // Use each sentence to get the GPS::Position
-      // Save the position to the Route (vector<GPS::Position>
-
+      // Declares the needed variables that are used multiple times
       string tempSentence;
       Route finalRoute;
       GPS::Position currentPosition(0, 0, 0);
-      int counter1 = 0;
-      int counter2 = 0;
 
-
-
-      while (logStream.good()) {
+      // Keeps looping until the end of the input stream
+      while (logStream.good())
+      {
           getline(logStream, tempSentence, '\n');
-
-          if (isWellFormedSentence(tempSentence))
+          if (isWellFormedSentence(tempSentence) && hasValidChecksum(tempSentence))
           {
-              counter1++;
-              if (hasValidChecksum(tempSentence))
+              try
               {
-                  counter2++;
-                  {
-                          try
-                          {
-                           currentPosition = positionFromSentenceData(extractSentenceData(tempSentence));
-                           finalRoute.push_back(currentPosition);
-                          }
-                          catch (...)
-                          {
-
-                          }
-                      }
+                  // Attempts to make a Position object from the sentence,
+                  // catching any exceptions from invalid data
+                  currentPosition = positionFromSentenceData(extractSentenceData(tempSentence));
+                  finalRoute.push_back(currentPosition);
               }
+              catch (invalid_argument) { /*Needs to catch expected exceptions but not handle them*/}
           }
-
-        }
-      // Stub definition, needs implementing
+      }
       return finalRoute;
   }
 
